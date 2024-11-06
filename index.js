@@ -10,7 +10,6 @@ import InforPatient from './src/screens/home/InforPatient';
 import HearRate from './src/screens/home/HeartRate';
 import { ThingsBoard } from './src/assets/API/ThingsBoard';
 import RealtimeData from './src/assets/API/RealtimeData';
-import Baarchart from './src/components/BarChart';
 
 
 AppRegistry.registerComponent(appName, () => HearRate);
