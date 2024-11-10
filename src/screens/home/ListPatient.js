@@ -1,151 +1,103 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Text, View, TouchableOpacity, SafeAreaView, ScrollView, StyleSheet, Dimensions, TextInput, Image } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons"
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
+import Ionicons from "react-native-vector-icons/Ionicons";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import ThingsBoard from "../../assets/API/ThingsBoard";  
+import Spo2 from "./Spo2";
+import { useNavigation } from '@react-navigation/native'; 
 
 const hei = Dimensions.get("window").height;
 const wid = Dimensions.get("window").width;
-const ListPatient = () => {
 
-    return (
-<SafeAreaView style={{ flex: 1 }}>
-    <View style={styles.container}>
+const ListPatient = () => {
+  const [telemetryData, setTelemetryData] = useState({});
+  const navigation = useNavigation(); 
+
+  const getPatientStatus = (deviceData) => {
+    const temperature = deviceData.temperature ? parseFloat(deviceData.temperature[deviceData.temperature.length - 1].value) : 0;
+    const spo2 = deviceData.spo2 ? parseFloat(deviceData.spo2[deviceData.spo2.length - 1].value) : 100;
+    console.log('Temperature:', temperature);
+    console.log('SpO2:', spo2);
+    if (temperature > 33 ) {
+      return "Ốm";
+    }
+    return "Bình thường";
+  };
+
+  const onDataFetched = (data) => {
+    setTelemetryData(data);
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <ThingsBoard onDataFetched={onDataFetched} />
+
+      <View style={styles.container}>
         <View style={styles.header}>
-            <View style={styles.searchBox}>
-                <Ionicons name="search-sharp" size={32} style={{marginHorizontal:10,}}></Ionicons>
-                <TextInput placeholder="Tìm kiếm bệnh nhân"></TextInput>
+          <View style={styles.searchBox}>
+            <Ionicons name="search-sharp" size={32} style={{ marginHorizontal: 10 }}></Ionicons>
+            <TextInput placeholder="Tìm kiếm bệnh nhân"></TextInput>
+          </View>
+          <View style={styles.welcomeBox}>
+            <Image source={require('../../assets/image/avt.jpg')} style={{ height: 80, width: 80, borderRadius: 15, marginLeft: 27 }}></Image>
+            <View>
+              <Text style={{ marginLeft: 20 }}>Thứ 6, 29 th9, 2024</Text>
+              <Text style={{ fontWeight: 'bold', fontSize: 28, marginLeft: 20 }}>Xin chào, Bác sĩ !</Text>
             </View>
-            <View style={styles.welcomeBox}>
-                <Image source={require('../../assets/image/avt.jpg')} style={{height:80, width:80, borderRadius:15,marginLeft:27,}}></Image>
-                <View>
-                    <Text style={{marginLeft:20,}}>Thứ 6, 29 th9, 2024</Text>
-                    <Text style={{fontWeight:'bold', fontSize:28, marginLeft:20,}}>Xin chào, Bác sĩ !</Text>
-                </View>
-            </View>
+          </View>
         </View>
 
         <View style={styles.boxTop}>
-            <View style={[styles.twoBox, { backgroundColor: "#0f67fe" }]}>
-                <View style={{
-                    height: hei * 0.15,
-                    width: wid * 0.13,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
-                    <MaterialCommunityIcons name="account-group-outline" size={40} style={{ marginLeft: 5 }}> </MaterialCommunityIcons>
-                </View>
-                <View style={{
-                    height: hei * 0.15,
-                    width: wid * 0.25,
-                    justifyContent: 'center'
-                }}>
-                    <Text style={{
-                        color: 'white',
-                        fontSize: 26,
-                        fontWeight: 'bold',
-                    }}>24</Text>
-                    <Text style={{
-                        color: 'white',
-                        fontSize: 14,
-                        opacity: 0.7,
-                    }}>Số bệnh nhân</Text>
-                </View>
+          <View style={[styles.twoBox, { backgroundColor: "#0f67fe" }]}>
+            <View style={{ height: hei * 0.15, width: wid * 0.13, justifyContent: 'center', alignItems: 'center' }}>
+              <MaterialCommunityIcons name="account-group-outline" size={40} style={{ marginLeft: 5 }}></MaterialCommunityIcons>
             </View>
-            <View style={[styles.twoBox, { backgroundColor: "#fa4d5e" }]}>
-                <View style={{
-                    height: hei * 0.15,
-                    width: wid * 0.13,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
-                    <MaterialCommunityIcons name="account-group-outline" size={40} style={{ marginLeft: 5 }}> </MaterialCommunityIcons>
-                </View>
-                <View style={{
-                    height: hei * 0.15,
-                    width: wid * 0.25,
-                    justifyContent: 'center'
-                }}>
-                    <Text style={{
-                        color: 'white',
-                        fontSize: 26,
-                        fontWeight: 'bold',
-                    }}>24</Text>
-                    <Text style={{
-                        color: 'white',
-                        fontSize: 14,
-                        opacity: 0.7,
-                    }}>Bệnh nhân ốm</Text>
-                </View>
+            <View style={{ height: hei * 0.15, width: wid * 0.25, justifyContent: 'center' }}>
+              <Text style={{ color: 'white', fontSize: 26, fontWeight: 'bold' }}>2</Text>
+              <Text style={{ color: 'white', fontSize: 14, opacity: 0.7 }}>Số bệnh nhân</Text>
             </View>
+          </View>
+          <View style={[styles.twoBox, { backgroundColor: "#fa4d5e" }]}>
+            <View style={{ height: hei * 0.15, width: wid * 0.13, justifyContent: 'center', alignItems: 'center' }}>
+              <MaterialCommunityIcons name="account-group-outline" size={40} style={{ marginLeft: 5 }}></MaterialCommunityIcons>
+            </View>
+            <View style={{ height: hei * 0.15, width: wid * 0.25, justifyContent: 'center' }}>
+              <Text style={{ color: 'white', fontSize: 26, fontWeight: 'bold' }}>1</Text>
+              <Text style={{ color: 'white', fontSize: 14, opacity: 0.7 }}>Bệnh nhân ốm</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={{
-            height: hei * 0.03,
-            justifyContent: 'center',
-            marginTop:5,
-        }}>
-            <Text style={[styles.normalText, { paddingLeft: 25 }]}>Bệnh nhân</Text>
+        <View style={{ height: hei * 0.03, justifyContent: "center", paddingLeft: 30, marginTop:20, marginBottom:-10, }}>
+          <Text style={{ fontWeight: "bold", fontSize: 16 }}>Danh sách bệnh nhân</Text>
         </View>
 
-        {/* ScrollView chiếm phần còn lại của màn hình */}
-        <ScrollView style={{ flex: 1, }}>
-            <View style={styles.boxPatient}>
-                <View style = {styles.avtView}>
+        <ScrollView>
+          {Object.keys(telemetryData).map((deviceId) => {
+            const deviceData = telemetryData[deviceId];
+            const patientStatus = getPatientStatus(deviceData);
+            return (
+              <TouchableOpacity key={deviceId} style={styles.boxPatient}
+                onPress={() => navigation.navigate('InforPatient', { deviceId, deviceData })}>
+               <View style = {styles.avtView}>
                     <Ionicons name="person-outline" size={35}></Ionicons>
                 </View>
                 <View style ={styles.inforView}>
                     <Text style={styles.nameText}>Mohamed Bin Salman</Text>
                     <Text style={styles.sexText}>Nam</Text>
                 </View>
-                <View style={styles.status}>
-                    <Text>Binh thuong</Text>
+                <View style={[styles.status, patientStatus === "Ốm" ? { backgroundColor: '#fa4d5e' } : { backgroundColor: '#1EFF65' }]}>
+                <Text style={{ color:'white'}}>{`${patientStatus}`}</Text>
                 </View>
-            </View>
-
-            <View style={styles.boxPatient}>
-                <View style = {styles.avtView}>
-                    <Ionicons name="person-outline" size={35}></Ionicons>
-                </View>
-                <View style ={styles.inforView}>
-                    <Text style={styles.nameText}>Mohamed Bin Salman</Text>
-                    <Text style={styles.sexText}>Nam</Text>
-                </View>
-                <View style={styles.status}>
-                    <Text>Binh thuong</Text>
-                </View>
-            </View>
-
-            <View style={styles.boxPatient}>
-                <View style = {styles.avtView}>
-                    <Ionicons name="person-outline" size={35}></Ionicons>
-                </View>
-                <View style ={styles.inforView}>
-                    <Text style={styles.nameText}>Mohamed Bin Salman</Text>
-                    <Text style={styles.sexText}>Nam</Text>
-                </View>
-                <View style={styles.status}>
-                    <Text>Binh thuong</Text>
-                </View>
-            </View>
-            <View style={styles.boxPatient}>
-                <View style = {styles.avtView}>
-                    <Ionicons name="person-outline" size={35}></Ionicons>
-                </View>
-                <View style ={styles.inforView}>
-                    <Text style={styles.nameText}>Mohamed Bin Salman</Text>
-                    <Text style={styles.sexText}>Nam</Text>
-                </View>
-                <View style={styles.status}>
-                    <Text>Binh thuong</Text>
-                </View>
-            </View>
-            
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
-    </View>
-</SafeAreaView>
+      </View>
+    </SafeAreaView>
+  );
+};
 
-    )
-}
 export default ListPatient;
 
 const styles = StyleSheet.create({

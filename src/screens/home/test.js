@@ -3,14 +3,11 @@ import { Text, View, SafeAreaView, TouchableOpacity, Image, StyleSheet, Dimensio
 import Ionicons from "react-native-vector-icons/Ionicons"
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6"
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
-import { useNavigation } from '@react-navigation/native'; 
 
 const hei = Dimensions.get("window").height;
 const wid = Dimensions.get("window").width;
 
-const InforPatient = ({route}) => {
-    const {deviceId, deviceData } = route.params;
-    const navigation = useNavigation(); 
+const InforPatient = () => {
     return (
         <SafeAreaView>
             <View style = {styles.container}>
@@ -20,45 +17,42 @@ const InforPatient = ({route}) => {
                     <Text>21 tuoi, Nam</Text>
                 </View>
                 <View style={{flex:1,}}>
-                    <TouchableOpacity style={styles.boxInfor}
-                    onPress={() => navigation.navigate('HeartRate', { deviceId, deviceData })}>
+                    <View style={styles.boxInfor}>
                         <View style = {[styles.avtView, {backgroundColor: "#ffe0e2"}]}>
                             <Ionicons name="heart-outline" size={35}></Ionicons>
                         </View>
                         <View style ={styles.inforView}>
                             <Text style={styles.nameText}>Nhịp tim</Text>
-                            <Text style={styles.sexText}>{deviceData.heart_rate ? deviceData.heart_rate[deviceData.heart_rate.length - 1].value : "N/A"} bpm</Text>
+                            <Text style={styles.sexText}>85 bpm</Text>
                         </View>
                         <View style={styles.status}>
                             <Text>Bình thường</Text>
                         </View>
-                   </TouchableOpacity>
-                   <TouchableOpacity style={styles.boxInfor}
-                   onPress={() => navigation.navigate('Temperature', { deviceId, deviceData })}>
+                   </View>
+                   <View style={styles.boxInfor}>
                         <View style = {[styles.avtView, {backgroundColor: "#f9ffdb"}]}>
                             <FontAwesome6 name="temperature-empty" size={35}></FontAwesome6>
                         </View>
                         <View style ={styles.inforView}>
                             <Text style={styles.nameText}>Nhiệt độ</Text>
-                            <Text style={styles.sexText}>{deviceData.temperature ? deviceData.temperature[deviceData.temperature.length - 1].value : "N/A"}°C</Text>
+                            <Text style={styles.sexText}>37</Text>
                         </View>
                         <View style={styles.status}>
                             <Text>Bình thường</Text>
                         </View>
-                   </TouchableOpacity>
-                   <TouchableOpacity style={styles.boxInfor}
-                   onPress={() => navigation.navigate('SpO2', { deviceId, deviceData })}>
+                   </View>
+                   <View style={styles.boxInfor}>
                         <View style = {[styles.avtView, {backgroundColor: "#d3fff5"}]}>
                         <FontAwesome5 name="air-freshener" size={35}></FontAwesome5>
                         </View>
                         <View style ={styles.inforView}>
                             <Text style={styles.nameText}>SpO2</Text>
-                            <Text style={styles.sexText}>{deviceData.spo2 ? deviceData.spo2[deviceData.spo2.length - 1].value : "N/A"}%</Text>
+                            <Text style={styles.sexText}>95%</Text>
                         </View>
                         <View style={styles.status}>
                             <Text>Bình thường</Text>
                         </View>
-                   </TouchableOpacity>
+                   </View>
                 </View>
             </View>
         </SafeAreaView>
