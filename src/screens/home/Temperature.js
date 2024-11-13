@@ -1,22 +1,98 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Text, View, SafeAreaView, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons"
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6"
-
+import fetchLatestTelemetryDataDevice from "../../assets/API/APIGetAttrs";
+import fetchHistoricalTelemetryData from "../../assets/API/APIhistory";
+import Liinechart from "../../components/LiineChart";
+import moment from "moment";
 
 
 const hei = Dimensions.get("window").height;
 const wid = Dimensions.get("window").width;
+const key = "temperature";
+const codeMax = "MAX";
+const codeMin = "MIN";
+const codeAVG = "AVG";
 const Temperature = ({route})=>{
-    const {deviceId, deviceData } = route.params;
-    const TemperatureValues = deviceData.temperature ? deviceData.temperature.map(item => item.value) : [];
+    const {deviceId} = route.params;
+    const [temperature, setTemperature] = useState(null);
+    const [maxTemp, setMaxTemp] = useState(null);
+    const [minTemp, setMinTemp] = useState(null);
+    const [chartData, setChartData] = useState(null);
+    useEffect(() => {
+        const getTelemetryData = async(deviceId) => {
+            let res = await fetchLatestTelemetryDataDevice(deviceId);
+       
+            if (res != null && "temperature" in res){
+                setTemperature(res?.temperature[0]?.value);
+            }
+        }
+    getTelemetryData(deviceId);
+    const intervalId = setInterval(() => getTelemetryData(deviceId), 2000);
 
-  
-    const minTemperature = TemperatureValues.length > 0 ? Math.min(...TemperatureValues) : "N/A";
-    const maxTemperature = TemperatureValues.length > 0 ? Math.max(...TemperatureValues) : "N/A";
-    const avgTemperature= TemperatureValues.length > 0 ? (TemperatureValues.reduce((a, b) => a + b, 0) / TemperatureValues.length).toFixed(1) : "N/A";
+    return () => clearInterval(intervalId);
+},[])
+useEffect(() => {
+    const getMaxData = async (deviceId, key, code) => {
+        let history = await fetchHistoricalTelemetryData(deviceId, key, code);
+        if (history != null && "temperature" in history) {
+                setMaxTemp(Math.max(...history.temperature.map(item => item.value)));
+        }
+    };
+    getMaxData(deviceId, key, codeMax);
+
+    const interval = setInterval(() => getMaxData(deviceId, key, codeMax), 3000);
+    return () => clearInterval(interval);
+}, []);
+useEffect(() => {
+    const getMinData = async (deviceId, key, code) => {
+        let history = await fetchHistoricalTelemetryData(deviceId, key, code);
+        if (history != null && "temperature" in history) {
+                setMinTemp(Math.min(...history.temperature.map(item => item.value)));
+            
+            
+        }
+    };
+    getMinData(deviceId, key, codeMin);
+
+    const interval = setInterval(() => getMinData(deviceId, key, codeMin), 3000);
+    return () => clearInterval(interval);
+}, []);
+
+
+
+useEffect(() => {
+    const getAVGData = async (deviceId, key, code) => {
+        let history = await fetchHistoricalTelemetryData(deviceId, key, code);
+        if (history != null && "temperature" in history) {
+            const maxElements = 5;
+            const last8Elements = history.temperature.slice(-maxElements);
+
+            if (last8Elements.length > 0) {
+                const labels = last8Elements.map(item =>
+                    moment(parseInt(item.ts)).format('HH:mm')
+                );
+            //    console.log(labels)
+                const data = last8Elements.map(item => {
+                    const num = parseFloat(item.value);
+                    return num });
+                console.log(data); 
+                setChartData({
+                    labels: labels,
+                    datasets: [{ data: data }]
+                });
+            }
+        }
+    };   
+    getAVGData(deviceId, key, codeAVG);
+    const interval = setInterval(() => getAVGData(deviceId, key, codeAVG), 2000);
+    return () => clearInterval(interval);
+}, []);
+
+
+
     return (
-        <SafeAreaView>
+        <SafeAreaView>         
             <View style ={styles.container}>
                 <View style={styles.MainBox}>
                     <View style={styles.firstBox}>
@@ -28,7 +104,7 @@ const Temperature = ({route})=>{
                             fontWeight:'bold',
                             color:'white',
                             marginLeft: -20,
-                        }}> {TemperatureValues.length > 0 ? TemperatureValues[TemperatureValues.length - 1] : "N/A"} <Text style={{
+                        }}> {temperature == null ? "NA": temperature} <Text style={{
                             fontSize:24,
                             fontWeight:'bold',
                             color:'#8f8f8f'
@@ -51,19 +127,15 @@ const Temperature = ({route})=>{
                 <View style ={styles.hoursBox}>
                    <View style={styles.miniBox}>
                     <Text style={styles.miniTex}>Thấp nhất</Text>
-                    <Text style={styles.numberText}>{minTemperature}</Text>
+                    <Text style={styles.numberText}>{minTemp}</Text>
                     <Text style={styles.unitText}>°C</Text>
                    </View>
                    <View style={styles.miniBox}>
                     <Text style={styles.miniTex}>Cao nhất</Text>
-                    <Text style={styles.numberText}>{maxTemperature}</Text>
+                    <Text style={styles.numberText}>{maxTemp}</Text>
                     <Text style={styles.unitText}>°C</Text>
                    </View>
-                   <View style={styles.miniBox}>
-                    <Text style={styles.miniTex}>Trung bình</Text>
-                    <Text style={styles.numberText}>{avgTemperature}</Text>
-                    <Text style={styles.unitText}>°C</Text>
-                   </View>
+
                 </View>
                 <View style={styles.chartBox}>
                     <View style={{
@@ -73,7 +145,14 @@ const Temperature = ({route})=>{
                     }}>
                         <Text style={styles.normalText}>Biểu đồ</Text>
                     </View>
+                    { chartData == null
+                        ? <></>
+                        :
+                        <Liinechart height={250} width={350} data={chartData} backgroundGradient='#14142F' fillShadowGradientFrom='#14142F' fillShadowGradientTo='#14142F' colorLine={`rgb(93,246,108)`} Opacity={0}></Liinechart>
+                        // <></>
+                    }
                 </View>
+               
             </View>
         </SafeAreaView>
     )
@@ -123,7 +202,7 @@ const styles = StyleSheet.create({
         marginTop:10,
     },
     miniBox:{
-        width: wid * 0.299,
+        width: wid * 0.4,
         alignItems:'center',
         justifyContent:'center',
     //    backgroundColor:'red'

@@ -9,10 +9,10 @@ const oneHourAgo = new Date(currentTime.getTime() - 10 * 60 * 1000);
 const startTimestamp = oneHourAgo.getTime();
 const endTimestamp = currentTime.getTime();
 
+
 const ThingsBoard = ({ onDataFetched }) => {
   const [telemetryData, setTelemetryData] = useState({});
   const [historyData, setHistoryData] = useState({});
-
   const deviceIds = [
     "c7826090-9c28-11ef-b5a8-ed1aed9a651f",
     "f009edb0-9cde-11ef-b5a8-ed1aed9a651f"  
@@ -80,7 +80,7 @@ const ThingsBoard = ({ onDataFetched }) => {
   useEffect(() => {
     fetchHistoricalTelemetryData();
 
-    const intervalId = setInterval(fetchLatestTelemetryData, 5000);
+    const intervalId = setInterval(fetchLatestTelemetryData, 2000);
 
     return () => clearInterval(intervalId);
   }, []);
