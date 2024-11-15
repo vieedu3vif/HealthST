@@ -1,16 +1,69 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Text, View, SafeAreaView, TouchableOpacity, Image, StyleSheet, Dimensions, } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons"
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6"
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import { useNavigation } from '@react-navigation/native'; 
-
+import fetchLatestTelemetryDataDevice from "../../assets/API/APIGetAttrs";
 const hei = Dimensions.get("window").height;
 const wid = Dimensions.get("window").width;
 
 const InforPatient = ({route}) => {
-    const {deviceId, deviceData } = route.params;
+    const {deviceId } = route.params;
+    const [temperature, setTemperature] = useState(null);
+    const [heartRate, setHeartRate] = useState(null);
+    const [spo2, setSpo2] = useState(null);
     const navigation = useNavigation(); 
+   
+    useEffect(() => {
+        const getTelemetryData = async(deviceId) => {
+           
+            let res = await fetchLatestTelemetryDataDevice(deviceId);
+            if (res != null &&  "temperature" in res && "heart_rate" in res && "spo2" in res){
+                setTemperature(res?.temperature[0]?.value);
+                setHeartRate(res?.heart_rate[0]?.value);
+                setSpo2(res?.spo2[0]?.value);
+            }
+        }
+    getTelemetryData(deviceId);
+
+    const intervalId = setInterval(() => getTelemetryData(deviceId), 2000);
+
+    return () => clearInterval(intervalId);
+},[])
+
+const getPatientStatus = (deviceData, key) => {
+    if (!deviceData) {
+      return "Dữ liệu không hợp lệ";
+    }
+    if(key =="temp") {
+
+        if(deviceData > 35) {
+            return "Bất thường";
+        }
+        return "Bình thường";
+      }
+    if(key =="hr") {
+
+        if(deviceData > 130 || deviceData < 60) {
+            return "Bất thường";
+        }
+        return "Bình thường";
+    }
+  
+      if(key =="sp") {
+
+        if(deviceData < 95) {
+            return "Bất thường";
+        }
+        return "Bình thường";
+      }
+      return "Dữ liệu không hợp lệ";
+  };
+  const hrStatus = getPatientStatus(heartRate, "hr");
+  const tpStatus = getPatientStatus(temperature, "temp");
+  const spStatus = getPatientStatus(spo2,"sp");
+
     return (
         <SafeAreaView>
             <View style = {styles.container}>
@@ -21,42 +74,43 @@ const InforPatient = ({route}) => {
                 </View>
                 <View style={{flex:1,}}>
                     <TouchableOpacity style={styles.boxInfor}
-                    onPress={() => navigation.navigate('HeartRate', { deviceId, deviceData })}>
+                    onPress={() => navigation.navigate('HeartRate', { deviceId})}>
                         <View style = {[styles.avtView, {backgroundColor: "#ffe0e2"}]}>
                             <Ionicons name="heart-outline" size={35}></Ionicons>
                         </View>
                         <View style ={styles.inforView}>
                             <Text style={styles.nameText}>Nhịp tim</Text>
-                            <Text style={styles.sexText}>{deviceData.heart_rate ? deviceData.heart_rate[deviceData.heart_rate.length - 1].value : "N/A"} bpm</Text>
+                            <Text style={styles.sexText}>{heartRate == null ? "NA": heartRate} bpm</Text>
                         </View>
-                        <View style={styles.status}>
-                            <Text>Bình thường</Text>
+                        <View style={[styles.status, hrStatus === "Bất thường" ? { backgroundColor: '#fa4d5e' } : { backgroundColor: '#1EFF65' }]}>
+                            <Text>{hrStatus}</Text>
                         </View>
                    </TouchableOpacity>
                    <TouchableOpacity style={styles.boxInfor}
-                   onPress={() => navigation.navigate('Temperature', { deviceId, deviceData })}>
+                   onPress={() => navigation.navigate('Temperature', { deviceId})}>
                         <View style = {[styles.avtView, {backgroundColor: "#f9ffdb"}]}>
                             <FontAwesome6 name="temperature-empty" size={35}></FontAwesome6>
                         </View>
                         <View style ={styles.inforView}>
                             <Text style={styles.nameText}>Nhiệt độ</Text>
-                            <Text style={styles.sexText}>{deviceData.temperature ? deviceData.temperature[deviceData.temperature.length - 1].value : "N/A"}°C</Text>
+                            <Text style={styles.sexText}>{temperature == null ? "NA": temperature}</Text>
+
                         </View>
-                        <View style={styles.status}>
-                            <Text>Bình thường</Text>
+                        <View style={[styles.status, tpStatus === "Bất thường" ? { backgroundColor: '#fa4d5e' } : { backgroundColor: '#1EFF65' }]}>
+                            <Text>{tpStatus}</Text>
                         </View>
                    </TouchableOpacity>
                    <TouchableOpacity style={styles.boxInfor}
-                   onPress={() => navigation.navigate('SpO2', { deviceId, deviceData })}>
+                   onPress={() => navigation.navigate('SpO2', { deviceId})}>
                         <View style = {[styles.avtView, {backgroundColor: "#d3fff5"}]}>
                         <FontAwesome5 name="air-freshener" size={35}></FontAwesome5>
                         </View>
                         <View style ={styles.inforView}>
                             <Text style={styles.nameText}>SpO2</Text>
-                            <Text style={styles.sexText}>{deviceData.spo2 ? deviceData.spo2[deviceData.spo2.length - 1].value : "N/A"}%</Text>
+                            <Text style={styles.sexText}>{spo2 == null ? "NA": spo2}%</Text>
                         </View>
-                        <View style={styles.status}>
-                            <Text>Bình thường</Text>
+                        <View style={[styles.status, spStatus === "Bất thường" ? { backgroundColor: '#fa4d5e' } : { backgroundColor: '#1EFF65' }]}>
+                            <Text>{spStatus}</Text>
                         </View>
                    </TouchableOpacity>
                 </View>

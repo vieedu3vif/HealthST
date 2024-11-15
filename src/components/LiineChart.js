@@ -2,47 +2,37 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
-const Liinechart = () => {
-  const dataSleep = {
-    labels: ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"],
-    datasets: [
-      {
-        data: [2, 8, 7, 6, 4, 9, 5]
-      }
-    ]
-  };       
 
+const Liinechart = (props) => {
   return (
     <LineChart
-      data={dataSleep}
-      width={350}  // Giá trị cố định cho chiều rộng
-      height={280} // Giá trị cố định cho chiều cao
+      data={props.data}
+      
+      width={props.width}
+      height={props.height}
       verticalLabelRotation={30}
       chartConfig={{
-        backgroundGradientFrom: "#ffffff",
-        backgroundGradientFromOpacity: 0,
-        backgroundGradientTo: "#ffffff",
+        backgroundGradientFrom: props.backgroundGradient,
+        backgroundGradientFromOpacity: 0,                    //Opacity = 0 rồi thật ra ko cần truyền màu cũng được, mờ 100% - cái chart sẽ màu cái chứa nó.
+        backgroundGradientTo: props.backgroundGradient,   // Nền cũng để màu chạy tuyến tính đc nma t thấy ko thích nên để 1 cái màu thôi.
         backgroundGradientToOpacity: 0,
-        color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
-        labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-        strokeWidth: 8,
+        color: (opacity = 1) => props.colorLine,
+        labelColor: (opacity = 1) => `rgb(0, 0, 0)`,
+        strokeWidth: 4, // optional, default 3
         barPercentage: 0.5,
-        useShadowColorFromDataset: false,
-        fillShadowGradientFrom: "white",
-        fillShadowGradientFromOpacity: 1,
-        fillShadowGradientTo: "white",
-        fillShadowGradientToOpacity: 1,
+        useShadowColorFromDataset: false, // optional
+        fillShadowGradientFrom: props.fillShadowGradientFrom,
+        fillShadowGradientFromOpacity: props.Opacity,
+        fillShadowGradientTo: props.fillShadowGradientTo,
+        fillShadowGradientToOpacity: props.Opacity,
       }}
-      bezier
+      bezier={true}
       withInnerLines={false}
       withOuterLines={false}
       style={{
-        marginStart: -15,
-      //  marginTop:30,
-      marginRight:30,
+      //  marginStart: 15,
       }}
     />
   )
 }
-
-export default Liinechart;
+export default Liinechart

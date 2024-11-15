@@ -2,35 +2,86 @@ import React, { useState, useEffect } from "react";
 import { Text, View, TouchableOpacity, SafeAreaView, ScrollView, StyleSheet, Dimensions, TextInput, Image } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import ThingsBoard from "../../assets/API/ThingsBoard";  
 import Spo2 from "./Spo2";
-import { useNavigation } from '@react-navigation/native'; 
+import { useNavigation } from '@react-navigation/native';
+import fetchLatestTelemetryDataDevice from "../../assets/API/APIGetAttrs"; 
+
+
+const deviceId1 = "c7826090-9c28-11ef-b5a8-ed1aed9a651f";
+const deviceId2 = "f009edb0-9cde-11ef-b5a8-ed1aed9a651f" ;
 
 const hei = Dimensions.get("window").height;
 const wid = Dimensions.get("window").width;
 
 const ListPatient = () => {
-  const [telemetryData, setTelemetryData] = useState({});
+  const [telemetryData, setTelemetryData] = useState(null);
+  const [telemetryData2, setTelemetryData2] = useState(null);
+  const [numberSick, setNumberSick] = useState(null);
   const navigation = useNavigation(); 
 
   const getPatientStatus = (deviceData) => {
-    const temperature = deviceData.temperature ? parseFloat(deviceData.temperature[deviceData.temperature.length - 1].value) : 0;
-    const spo2 = deviceData.spo2 ? parseFloat(deviceData.spo2[deviceData.spo2.length - 1].value) : 100;
-    console.log('Temperature:', temperature);
-    console.log('SpO2:', spo2);
-    if (temperature > 33 ) {
+    if (!deviceData) {
+      return "Dữ liệu không hợp lệ";
+    }
+    // Lấy giá trị cuối cùng trong mỗi mảng, nếu mảng không rỗng
+    const temperature = deviceData.temperature && deviceData.temperature.length > 0 
+      ? parseFloat(deviceData.temperature[deviceData.temperature.length - 1].value) 
+      : 0;
+    
+    const heart_rate = deviceData.heart_rate && deviceData.heart_rate.length > 0
+      ? parseFloat(deviceData.heart_rate[deviceData.heart_rate.length - 1].value)
+      : 0;
+  
+    const spo2 = deviceData.spo2 && deviceData.spo2.length > 0
+      ? parseFloat(deviceData.spo2[deviceData.spo2.length - 1].value)
+      : 0;
+  
+    // Kiểm tra các điều kiện cho tình trạng bệnh nhân
+    if (temperature > 33 || heart_rate > 130 || spo2 < 95 || heart_rate < 60) {
       return "Ốm";
     }
+  
     return "Bình thường";
   };
+  
+  useEffect(() => {
+    const getTelemetryData = async(deviceId) => {
+      let res = await fetchLatestTelemetryDataDevice(deviceId);
+ 
+      if (res != null && "temperature" in res){
+          setTelemetryData(res);
+      }
+  }
+    getTelemetryData(deviceId1);
+    const intervalId = setInterval(() => getTelemetryData(deviceId1), 3000);
 
-  const onDataFetched = (data) => {
-    setTelemetryData(data);
-  };
+    return () => clearInterval(intervalId);
+  }, []);
+  useEffect(() => {
+    const fetchData2 = async (deviceId) => {
+      const data = await fetchLatestTelemetryDataDevice(deviceId);
+      setTelemetryData2(data);
+    }
+    fetchData2(deviceId2);
+    const interval = setInterval(() => fetchData2(deviceId2), 3000);
+    return () => clearInterval(interval);
+  }, []);
 
+  const patientStatus1 = getPatientStatus(telemetryData);
+  const patientStatus2 = getPatientStatus(telemetryData2); 
+  console.log(telemetryData)
+ 
+  useEffect(() => {
+    const countSickPatients = () => {
+      let count = 0;
+      if (getPatientStatus(telemetryData) === "Ốm") count++;
+      if (getPatientStatus(telemetryData2) === "Ốm") count++;
+      setNumberSick(count);
+    };
+    countSickPatients();
+  }, [telemetryData, telemetryData2]);
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ThingsBoard onDataFetched={onDataFetched} />
 
       <View style={styles.container}>
         <View style={styles.header}>
@@ -62,7 +113,7 @@ const ListPatient = () => {
               <MaterialCommunityIcons name="account-group-outline" size={40} style={{ marginLeft: 5 }}></MaterialCommunityIcons>
             </View>
             <View style={{ height: hei * 0.15, width: wid * 0.25, justifyContent: 'center' }}>
-              <Text style={{ color: 'white', fontSize: 26, fontWeight: 'bold' }}>1</Text>
+              <Text style={{ color: 'white', fontSize: 26, fontWeight: 'bold' }}>{numberSick}</Text>
               <Text style={{ color: 'white', fontSize: 14, opacity: 0.7 }}>Bệnh nhân ốm</Text>
             </View>
           </View>
@@ -71,27 +122,44 @@ const ListPatient = () => {
         <View style={{ height: hei * 0.03, justifyContent: "center", paddingLeft: 30, marginTop:20, marginBottom:-10, }}>
           <Text style={{ fontWeight: "bold", fontSize: 16 }}>Danh sách bệnh nhân</Text>
         </View>
-
+ 
         <ScrollView>
-          {Object.keys(telemetryData).map((deviceId) => {
-            const deviceData = telemetryData[deviceId];
-            const patientStatus = getPatientStatus(deviceData);
-            return (
-              <TouchableOpacity key={deviceId} style={styles.boxPatient}
-                onPress={() => navigation.navigate('InforPatient', { deviceId, deviceData })}>
-               <View style = {styles.avtView}>
-                    <Ionicons name="person-outline" size={35}></Ionicons>
-                </View>
-                <View style ={styles.inforView}>
-                    <Text style={styles.nameText}>Mohamed Bin Salman</Text>
-                    <Text style={styles.sexText}>Nam</Text>
-                </View>
-                <View style={[styles.status, patientStatus === "Ốm" ? { backgroundColor: '#fa4d5e' } : { backgroundColor: '#1EFF65' }]}>
-                <Text style={{ color:'white'}}>{`${patientStatus}`}</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+        {(
+    <TouchableOpacity 
+      style={styles.boxPatient}
+      onPress={() => navigation.navigate('InforPatient', { deviceId: deviceId1 })}
+    >
+      <View style={styles.avtView}>
+        <Ionicons name="person-outline" size={35}></Ionicons>
+      </View>
+      <View style={styles.inforView}>
+        <Text style={styles.nameText}>Mohamed Bin Salman</Text>
+        <Text style={styles.sexText}>Nam</Text>
+      </View>
+      <View style={[styles.status, patientStatus1 === "Ốm" ? { backgroundColor: '#fa4d5e' } : { backgroundColor: '#1EFF65' }]}>
+        <Text style={{ color: 'white' }}>{`${patientStatus1}`}</Text>
+      </View>
+    </TouchableOpacity>
+  )}
+  
+  {(
+    
+    <TouchableOpacity 
+      style={styles.boxPatient}
+      onPress={() => navigation.navigate('InforPatient', { deviceId: deviceId2})}
+    >
+      <View style={styles.avtView}>
+        <Ionicons name="person-outline" size={35}></Ionicons>
+      </View>
+      <View style={styles.inforView}>
+        <Text style={styles.nameText}>Patient 2</Text>
+        <Text style={styles.sexText}>Nữ</Text>
+      </View>
+      <View style={[styles.status, patientStatus2 === "Ốm" ? { backgroundColor: '#fa4d5e' } : { backgroundColor: '#1EFF65' }]}>
+        <Text style={{ color: 'white' }}>{`${patientStatus2}`}</Text>
+      </View>
+    </TouchableOpacity>
+  )}
         </ScrollView>
       </View>
     </SafeAreaView>

@@ -1,37 +1,117 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Text, View, SafeAreaView, StyleSheet, Dimensions } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import fetchLatestTelemetryDataDevice from "../../assets/API/APIGetAttrs";
+import fetchHistoricalTelemetryData from "../../assets/API/APIhistory";
+import moment from "moment";
+import Liinechart from "../../components/LiineChart";
 
 const hei = Dimensions.get("window").height;
 const wid = Dimensions.get("window").width;
 
+const key = "heart_rate";
+const codeMax = "MAX";
+const codeMin = "MIN";
+const codeAVG = "AVG";
 const HearRate = ({ route }) => {
-    const { deviceId, deviceData } = route.params;
+    const { deviceId} = route.params;
+    const [heartRate, setHeartRate] = useState(null);
+    const [maxHR, setMaxHR] = useState(null);
+    const [minHR, setMinHR] = useState(null);
+    const [chartData, setChartData] = useState(null);
 
-    
-    const heartRateValues = deviceData.heart_rate ? deviceData.heart_rate.map(item => item.value) : [];
+    useEffect(() => {
+        const getTelemetryData = async(deviceId) => {
+            let res = await fetchLatestTelemetryDataDevice(deviceId);
+            console.log("res2", res);
+            if (res != null && "heart_rate" in res){
+               
+                setHeartRate(res?.heart_rate[0]?.value);
+           
+                console.log(heartRate)
+            }
+        }
+    getTelemetryData(deviceId);
 
-   
-    const minHeartRate = heartRateValues.length > 0 ? Math.min(...heartRateValues) : "N/A";
-    const maxHeartRate = heartRateValues.length > 0 ? Math.max(...heartRateValues) : "N/A";
-    const avgHeartRate = heartRateValues.length > 0 ? (heartRateValues.reduce((a, b) => a + b, 0) / heartRateValues.length).toFixed(1) : "N/A";
+    const intervalId = setInterval(() => getTelemetryData(deviceId), 2000);
+
+    return () => clearInterval(intervalId);
+},[])
+
+useEffect(() => {
+    const getMaxData = async (deviceId, key, code) => {
+        let history = await fetchHistoricalTelemetryData(deviceId, key, code);
+        if (history != null && "heart_rate" in history) {
+                setMaxHR(Math.max(...history.heart_rate.map(item => item.value)));
+        }
+    };
+    getMaxData(deviceId, key, codeMax);
+
+    const interval = setInterval(() => getMaxData(deviceId, key, codeMax), 3000);
+    return () => clearInterval(interval);
+}, []);
+useEffect(() => {
+    const getMinData = async (deviceId, key, code) => {
+        let history = await fetchHistoricalTelemetryData(deviceId, key, code);
+        if (history != null && "heart_rate" in history) {
+                setMinHR(Math.min(...history.heart_rate.map(item => item.value)));
+            
+            
+        }
+    };
+    getMinData(deviceId, key, codeMin);
+
+    const interval = setInterval(() => getMinData(deviceId, key, codeMin), 3000);
+    return () => clearInterval(interval);
+}, []);
+
+
+
+useEffect(() => {
+    const getAVGData = async (deviceId, key, code) => {
+        let history = await fetchHistoricalTelemetryData(deviceId, key, code);
+        if (history != null && "heart_rate" in history) {
+            const maxElements = 5;
+            const last8Elements = history.heart_rate.slice(-maxElements);
+
+            if (last8Elements.length > 0) {
+                const labels = last8Elements.map(item =>
+                    moment(parseInt(item.ts)).format('HH:mm')
+                );
+            //    console.log(labels)
+                const data = last8Elements.map(item => {
+                    const num = parseFloat(item.value);
+                    return num });
+                console.log(data); 
+                setChartData({
+                    labels: labels,
+                    datasets: [{ data: data }]
+                });
+            }
+        }
+    };   
+    getAVGData(deviceId, key, codeAVG);
+    const interval = setInterval(() => getAVGData(deviceId, key, codeAVG), 2000);
+    return () => clearInterval(interval);
+}, []);
 
     return (
         <SafeAreaView>
             <View style={styles.container}>
                 <View style={styles.MainBox}>
                     <View style={styles.firstBox}>
-                        <Ionicons name="heart-outline" size={140} color={"white"} />
+                        <Ionicons name="heart-outline" size={120} color={"white"} />
                     </View>
                     <View style={styles.secondBox}>
                         <Text style={{
                             fontSize: 50,
                             fontWeight: 'bold',
-                            color: 'white'
+                            color: 'white',
+                            marginLeft: -25,
                         }}>
-                            {heartRateValues.length > 0 ? heartRateValues[heartRateValues.length - 1] : "N/A"}
+                            {heartRate== null ? "NA": heartRate}
                             <Text style={{
-                                fontSize: 24,
+                                fontSize: 16,
                                 fontWeight: 'bold',
                                 color: '#8f8f8f'
                             }}> bpm</Text>
@@ -53,17 +133,12 @@ const HearRate = ({ route }) => {
                 <View style={styles.hoursBox}>
                     <View style={styles.miniBox}>
                         <Text style={styles.miniTex}>Thấp nhất</Text>
-                        <Text style={styles.numberText}>{minHeartRate}</Text>
+                        <Text style={styles.numberText}>{minHR}</Text>
                         <Text style={styles.unitText}>bpm</Text>
                     </View>
                     <View style={styles.miniBox}>
                         <Text style={styles.miniTex}>Cao nhất</Text>
-                        <Text style={styles.numberText}>{maxHeartRate}</Text>
-                        <Text style={styles.unitText}>bpm</Text>
-                    </View>
-                    <View style={styles.miniBox}>
-                        <Text style={styles.miniTex}>Trung bình</Text>
-                        <Text style={styles.numberText}>{avgHeartRate}</Text>
+                        <Text style={styles.numberText}>{maxHR}</Text>
                         <Text style={styles.unitText}>bpm</Text>
                     </View>
                 </View>
@@ -74,6 +149,12 @@ const HearRate = ({ route }) => {
                         marginTop: 10,
                     }}>
                         <Text style={styles.normalText}>Biểu đồ</Text>
+                        { chartData == null
+                        ? <></>
+                        :
+                        <Liinechart height={250} width={350} data={chartData} backgroundGradient='#14142F' fillShadowGradientFrom='#14142F' fillShadowGradientTo='#14142F' colorLine={`rgb(93,246,108)`} Opacity={0}></Liinechart>
+                        // <></>
+                    }
                     </View>
                 </View>
             </View>
@@ -126,7 +207,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     miniBox: {
-        width: wid * 0.299,
+        width: wid * 0.45,
         alignItems: 'center',
         justifyContent: 'center',
     },
