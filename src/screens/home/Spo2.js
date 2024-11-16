@@ -24,7 +24,7 @@ const Spo2 = ({route})=>{
     useEffect(() => {
         const getTelemetryData = async(deviceId) => {
             let res = await fetchLatestTelemetryDataDevice(deviceId);
-            console.log("res2", res);
+//            console.log("res2", res);
             if (res != null && "spo2" in res){
                
                 setSpo2(res?.spo2[0]?.value);
@@ -81,7 +81,7 @@ useEffect(() => {
                 const data = last8Elements.map(item => {
                     const num = parseFloat(item.value);
                     return num });
-                console.log(data); 
+//                console.log(data); 
                 setChartData({
                     labels: labels,
                     datasets: [{ data: data }]

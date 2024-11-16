@@ -13,16 +13,20 @@ const InforPatient = ({route}) => {
     const [temperature, setTemperature] = useState(null);
     const [heartRate, setHeartRate] = useState(null);
     const [spo2, setSpo2] = useState(null);
+    const [name, setName] = useState(null);
+    const [sex, setSex] = useState(null);
     const navigation = useNavigation(); 
    
     useEffect(() => {
         const getTelemetryData = async(deviceId) => {
            
             let res = await fetchLatestTelemetryDataDevice(deviceId);
-            if (res != null &&  "temperature" in res && "heart_rate" in res && "spo2" in res){
+            if (res != null &&  "temperature" in res && "heart_rate" in res && "spo2" in res && "name" in res && "sex" in res){
                 setTemperature(res?.temperature[0]?.value);
                 setHeartRate(res?.heart_rate[0]?.value);
                 setSpo2(res?.spo2[0]?.value);
+                setName(res?.name[0]?.value);
+                setSex(res?.sex[0]?.value);
             }
         }
     getTelemetryData(deviceId);
@@ -69,8 +73,8 @@ const getPatientStatus = (deviceData, key) => {
             <View style = {styles.container}>
                 <View style={styles.boxTop}>
                     <Image source={require("../../assets/image/avt.jpg")} style={{height:75, width:75, borderRadius:15, marginTop:75,}}></Image>
-                    <Text style={{fontWeight:"bold", fontSize:28, color:"black", marginTop:10,}}>Mohamed Bin Salman</Text>
-                    <Text>21 tuoi, Nam</Text>
+                    <Text style={{fontWeight:"bold", fontSize:28, color:"black", marginTop:10,}}>{name}</Text>
+                    <Text>{sex}</Text>
                 </View>
                 <View style={{flex:1,}}>
                     <TouchableOpacity style={styles.boxInfor}

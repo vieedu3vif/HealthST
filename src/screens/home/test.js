@@ -1,117 +1,107 @@
-import React from "react";
-import { Text, View, SafeAreaView, TouchableOpacity, Image, StyleSheet, Dimensions, } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons"
-import FontAwesome6 from "react-native-vector-icons/FontAwesome6"
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
+import React, { useEffect, useState } from 'react';
+import { AppState, View, Text } from 'react-native';
+import sendLocalNotification from '../../ultis/Notify';
+import requestNotificationPermission from '../../ultis/request';
+import fetchLatestTelemetryDataDevice from '../../assets/API/APIGetAttrs';
 
-const hei = Dimensions.get("window").height;
-const wid = Dimensions.get("window").width;
+const Test = () => {
+  const [temperature, setTemperature] = useState([null, null]);
+  const [spo2, setSpo2] = useState([null, null]);
 
-const InforPatient = () => {
-    return (
-        <SafeAreaView>
-            <View style = {styles.container}>
-                <View style={styles.boxTop}>
-                    <Image source={require("../../assets/image/avt.jpg")} style={{height:75, width:75, borderRadius:15, marginTop:75,}}></Image>
-                    <Text style={{fontWeight:"bold", fontSize:28, color:"black", marginTop:10,}}>Mohamed Bin Salman</Text>
-                    <Text>21 tuoi, Nam</Text>
-                </View>
-                <View style={{flex:1,}}>
-                    <View style={styles.boxInfor}>
-                        <View style = {[styles.avtView, {backgroundColor: "#ffe0e2"}]}>
-                            <Ionicons name="heart-outline" size={35}></Ionicons>
-                        </View>
-                        <View style ={styles.inforView}>
-                            <Text style={styles.nameText}>Nhịp tim</Text>
-                            <Text style={styles.sexText}>85 bpm</Text>
-                        </View>
-                        <View style={styles.status}>
-                            <Text>Bình thường</Text>
-                        </View>
-                   </View>
-                   <View style={styles.boxInfor}>
-                        <View style = {[styles.avtView, {backgroundColor: "#f9ffdb"}]}>
-                            <FontAwesome6 name="temperature-empty" size={35}></FontAwesome6>
-                        </View>
-                        <View style ={styles.inforView}>
-                            <Text style={styles.nameText}>Nhiệt độ</Text>
-                            <Text style={styles.sexText}>37</Text>
-                        </View>
-                        <View style={styles.status}>
-                            <Text>Bình thường</Text>
-                        </View>
-                   </View>
-                   <View style={styles.boxInfor}>
-                        <View style = {[styles.avtView, {backgroundColor: "#d3fff5"}]}>
-                        <FontAwesome5 name="air-freshener" size={35}></FontAwesome5>
-                        </View>
-                        <View style ={styles.inforView}>
-                            <Text style={styles.nameText}>SpO2</Text>
-                            <Text style={styles.sexText}>95%</Text>
-                        </View>
-                        <View style={styles.status}>
-                            <Text>Bình thường</Text>
-                        </View>
-                   </View>
-                </View>
-            </View>
-        </SafeAreaView>
-    )
-}
-export default InforPatient
-const styles = StyleSheet.create({
-    container:{
-        flex: 1,
-    },
-    boxTop :{
-        height: hei * 0.35,
-        backgroundColor:"#d0e4ff",
-        borderBottomLeftRadius:35,
-        borderBottomRightRadius:35,
-        justifyContent:"center",
-        alignItems:"center",
-    },
-    boxInfor:{
-        height: hei * 0.1,
-        width: wid * 0.89,
-        backgroundColor: 'white',
-        borderRadius:20,
-        marginTop:35,
-        marginLeft:24,
-        flexDirection:'row',
-        alignItems:'center',
-    },
-    avtView: {
-        height:50,
-        width:50,
-        borderRadius:10,
-    //    backgroundColor:"#d0e4ff",
-        marginHorizontal:15, 
-        justifyContent:'center',
-        alignItems:'center'
-    },
-    inforView :{
-        height: hei * 0.1,
-        width: 170,
-    //    backgroundColor:'green',
-        justifyContent:'center',
-    //    alignItems:'center'
-    }, 
-    nameText : {
-        color:'black',
-        fontSize: 16,
-        fontWeight:'bold'
-    },
-    sexText:{
-        color:'black',
-        fontSize :12,
-    },
-    status:{
-        height:30,
-        width:85,
-        backgroundColor:'#95F8A7',
-        borderRadius:5,
-        justifyContent:'center',
-        alignItems:'center'
-    }
-})
+  // Trạng thái lưu dữ liệu lần cuối đã thông báo
+  const [lastNotifiedData, setLastNotifiedData] = useState({
+    temperature: [null, null],
+    spo2: [null, null],
+  });
+
+  useEffect(() => {
+    const deviceIds = ['c7826090-9c28-11ef-b5a8-ed1aed9a651f', 'f009edb0-9cde-11ef-b5a8-ed1aed9a651f'];
+
+    const initializeNotificationPermission = async () => {
+      const permissionGranted = await requestNotificationPermission();
+      if (permissionGranted) {
+        console.log("Quyền thông báo đã được cấp, có thể gửi thông báo");
+      } else {
+        console.log("Quyền thông báo chưa được cấp, không thể gửi thông báo");
+      }
+    };
+
+    initializeNotificationPermission();
+
+    // Hàm lấy dữ liệu từ thiết bị
+    const getTelemetryData = async (deviceId, index) => {
+      let res = await fetchLatestTelemetryDataDevice(deviceId);
+      if (res != null && "temperature" in res && "spo2" in res) {
+        const newTemp = res?.temperature[0]?.value;
+        const newSpo2 = res?.spo2[0]?.value;
+
+        // Cập nhật state nhiệt độ và SpO2
+        setTemperature((prev) => {
+          const updatedTemp = [...prev];
+          updatedTemp[index] = newTemp;
+          return updatedTemp;
+        });
+        setSpo2((prev) => {
+          const updatedSpo2 = [...prev];
+          updatedSpo2[index] = newSpo2;
+          return updatedSpo2;
+        });
+      }
+    };
+
+    // Gọi hàm getTelemetryData cho từng deviceId
+    deviceIds.forEach((deviceId, index) => {
+      getTelemetryData(deviceId, index);
+    });
+
+    const intervalId = setInterval(() => {
+      deviceIds.forEach((deviceId, index) => {
+        getTelemetryData(deviceId, index);
+      });
+    }, 4000);
+
+    // Xóa interval khi component unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Đăng ký AppState để theo dõi khi ứng dụng chuyển sang nền
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'background') {
+        temperature.forEach((temp, index) => {
+          const sp = spo2[index];
+          const lastTempNotified = lastNotifiedData.temperature[index];
+          const lastSpo2Notified = lastNotifiedData.spo2[index];
+
+          // Kiểm tra điều kiện và khác với giá trị đã thông báo trước đó
+          if ((temp > 130 && temp !== lastTempNotified) || (sp < 95 && sp !== lastSpo2Notified)) {
+            sendLocalNotification();
+
+            // Cập nhật dữ liệu thông báo lần cuối
+            setLastNotifiedData((prev) => {
+              const updatedData = {
+                temperature: [...prev.temperature],
+                spo2: [...prev.spo2],
+              };
+              updatedData.temperature[index] = temp;
+              updatedData.spo2[index] = sp;
+              return updatedData;
+            });
+          }
+        });
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [temperature, spo2, lastNotifiedData]);
+
+  return (
+    <View>
+      <Text>alooo</Text>
+    </View>
+  );
+};
+
+export default Test;
