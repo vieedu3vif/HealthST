@@ -23,12 +23,12 @@ const HearRate = ({ route }) => {
     useEffect(() => {
         const getTelemetryData = async(deviceId) => {
             let res = await fetchLatestTelemetryDataDevice(deviceId);
-            console.log("res2", res);
+ //           console.log("res2", res);
             if (res != null && "heart_rate" in res){
                
                 setHeartRate(res?.heart_rate[0]?.value);
            
-                console.log(heartRate)
+ //               console.log(heartRate)
             }
         }
     getTelemetryData(deviceId);
@@ -82,7 +82,7 @@ useEffect(() => {
                 const data = last8Elements.map(item => {
                     const num = parseFloat(item.value);
                     return num });
-                console.log(data); 
+ //               console.log(data); 
                 setChartData({
                     labels: labels,
                     datasets: [{ data: data }]

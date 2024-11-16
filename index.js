@@ -12,6 +12,11 @@ import Liinechart from './src/components/LiineChart';
 import Temperature from './src/screens/home/Temperature';
 import Spo2 from './src/screens/home/Spo2';
 import Notify from './src/ultis/Notify';
+import Test from './src/screens/home/Test';
+import Appnavigation from './src/screens/navigations/Appnavigation';
+import Login from './src/screens/welcome/Login';
+import Signup from './src/screens/welcome/Signup';
 
 
-AppRegistry.registerComponent(appName, () => App);
+
+AppRegistry.registerComponent(appName, () => Appnavigation);

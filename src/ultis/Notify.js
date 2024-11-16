@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { Notifications } from 'react-native-notifications';
 
-const Notify = () => {
-  return (
-    <View>
-      <Text>Thông báo sẽ được gửi mỗi 15 giây.</Text>
-    </View>
-  );
+const sendLocalNotification = () => {
+  Notifications.postLocalNotification({
+    title: "HealthST",
+    body: "CÓ bệnh nhân bất thường, xem ngay!",
+    silent: false, // false để hiển thị âm thanh thông báo
+    category: "SOME_CATEGORY",
+  });
 };
 
-export default Notify;
+export default sendLocalNotification;

@@ -76,7 +76,7 @@ useEffect(() => {
                 const data = last8Elements.map(item => {
                     const num = parseFloat(item.value);
                     return num });
-                console.log(data); 
+ //               console.log(data); 
                 setChartData({
                     labels: labels,
                     datasets: [{ data: data }]
