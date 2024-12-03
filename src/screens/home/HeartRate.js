@@ -126,7 +126,7 @@ useEffect(() => {
                 <View style={{
                     height: hei * 0.03,
                     justifyContent: 'center',
-                    marginTop: 25,
+                //    marginTop: 25,
                 }}>
                     <Text style={[styles.normalText, { paddingLeft: 25 }]}>Chỉ số hàng giờ</Text>
                 </View>
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     },
     hoursBox: {
         width: wid * 0.89,
-        height: hei * 0.15,
+        height: hei *0.13,
         backgroundColor: 'white',
         borderRadius: 25,
         flexDirection: "row",

@@ -4,7 +4,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation } from "@react-navigation/native";
 import fetchLatestTelemetryDataDevice from "../../assets/API/APIGetAttrs";
-
+import auth from "@react-native-firebase/auth";
 const hei = Dimensions.get("window").height;
 const wid = Dimensions.get("window").width;
 
@@ -62,8 +62,19 @@ const ListPatient = () => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.searchBox}>
-            <Ionicons name="search-sharp" size={32} style={{ marginHorizontal: 10 }} />
-            <TextInput placeholder="Tìm kiếm bệnh nhân" />
+            <TouchableOpacity 
+            style={{flexDirection:'row', justifyContent:'center', alignItems:'center', backgroundColor:'white', height:45, width:120, borderRadius:25,}}
+            onPress={async () => {
+              try {
+                await auth().signOut();
+                navigation.replace("Login"); 
+              } catch (error) {
+                console.error("Đăng xuất thất bại:", error);
+              }
+            }}>
+              <MaterialCommunityIcons name='logout' size={30}></MaterialCommunityIcons>
+              <Text>Đăng xuất</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.welcomeBox}>
             <Image
@@ -149,9 +160,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   searchBox: {
-    height: 45,
+    height: 50,
     width: wid * 0.88,
-    backgroundColor: "white",
+  //  backgroundColor: "white",
     marginVertical: 15,
     borderRadius: 15,
     flexDirection: "row",
@@ -242,5 +253,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
+    marginLeft:-40,
   },
 });

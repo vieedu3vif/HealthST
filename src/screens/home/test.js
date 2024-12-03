@@ -1,107 +1,70 @@
 import React, { useEffect, useState } from 'react';
-import { AppState, View, Text } from 'react-native';
-import sendLocalNotification from '../../ultis/Notify';
-import requestNotificationPermission from '../../ultis/request';
-import fetchLatestTelemetryDataDevice from '../../assets/API/APIGetAttrs';
+import { View, Text, Alert } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 
-const Test = () => {
-  const [temperature, setTemperature] = useState([null, null]);
-  const [spo2, setSpo2] = useState([null, null]);
+const App = () => {
+  const [notification, setNotification] = useState(null);
 
-  // Trạng thái lưu dữ liệu lần cuối đã thông báo
-  const [lastNotifiedData, setLastNotifiedData] = useState({
-    temperature: [null, null],
-    spo2: [null, null],
-  });
-
+  // Yêu cầu quyền thông báo cho Android
   useEffect(() => {
-    const deviceIds = ['c7826090-9c28-11ef-b5a8-ed1aed9a651f', 'f009edb0-9cde-11ef-b5a8-ed1aed9a651f'];
+    const requestPermission = async () => {
+      const authStatus = await messaging().requestPermission();
+      const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-    const initializeNotificationPermission = async () => {
-      const permissionGranted = await requestNotificationPermission();
-      if (permissionGranted) {
-        console.log("Quyền thông báo đã được cấp, có thể gửi thông báo");
+      if (enabled) {
+        console.log('Notification permission granted!');
       } else {
-        console.log("Quyền thông báo chưa được cấp, không thể gửi thông báo");
+        console.log('Notification permission denied!');
       }
     };
 
-    initializeNotificationPermission();
+    requestPermission();
 
-    // Hàm lấy dữ liệu từ thiết bị
-    const getTelemetryData = async (deviceId, index) => {
-      let res = await fetchLatestTelemetryDataDevice(deviceId);
-      if (res != null && "temperature" in res && "spo2" in res) {
-        const newTemp = res?.temperature[0]?.value;
-        const newSpo2 = res?.spo2[0]?.value;
+    // Đăng ký vào topic "alerts"
+    messaging()
+      .subscribeToTopic('alerts')
+      .then(() => {
+        console.log('Subscribed to alerts topic!');
+      })
+      .catch(error => {
+        console.log('Error subscribing to topic:', error);
+      });
 
-        // Cập nhật state nhiệt độ và SpO2
-        setTemperature((prev) => {
-          const updatedTemp = [...prev];
-          updatedTemp[index] = newTemp;
-          return updatedTemp;
-        });
-        setSpo2((prev) => {
-          const updatedSpo2 = [...prev];
-          updatedSpo2[index] = newSpo2;
-          return updatedSpo2;
-        });
-      }
-    };
-
-    // Gọi hàm getTelemetryData cho từng deviceId
-    deviceIds.forEach((deviceId, index) => {
-      getTelemetryData(deviceId, index);
+    // Lắng nghe thông báo khi ứng dụng đang mở (foreground)
+    const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
+      console.log('Foreground message received:', remoteMessage);
+      setNotification(remoteMessage.notification);
+      Alert.alert('New Notification', remoteMessage.notification.body);
     });
 
-    const intervalId = setInterval(() => {
-      deviceIds.forEach((deviceId, index) => {
-        getTelemetryData(deviceId, index);
-      });
-    }, 4000);
+    // Lắng nghe thông báo khi ứng dụng đang ở background
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log('Notification caused app to open from background state:', remoteMessage);
+      setNotification(remoteMessage.notification);
+      Alert.alert('App opened by notification', remoteMessage.notification.body);
+    });
 
-    // Xóa interval khi component unmount
-    return () => clearInterval(intervalId);
+    // Kiểm tra khi ứng dụng được mở từ thông báo khi ứng dụng đã bị tắt
+    messaging().getInitialNotification().then(remoteMessage => {
+      if (remoteMessage) {
+        console.log('App opened from a quit state by notification:', remoteMessage);
+        setNotification(remoteMessage.notification);
+        Alert.alert('App opened by notification', remoteMessage.notification.body);
+      }
+    });
+
+    return () => unsubscribeOnMessage(); // Dọn dẹp khi component unmount
   }, []);
 
-  // Đăng ký AppState để theo dõi khi ứng dụng chuyển sang nền
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'background') {
-        temperature.forEach((temp, index) => {
-          const sp = spo2[index];
-          const lastTempNotified = lastNotifiedData.temperature[index];
-          const lastSpo2Notified = lastNotifiedData.spo2[index];
-
-          // Kiểm tra điều kiện và khác với giá trị đã thông báo trước đó
-          if ((temp > 130 && temp !== lastTempNotified) || (sp < 95 && sp !== lastSpo2Notified)) {
-            sendLocalNotification();
-
-            // Cập nhật dữ liệu thông báo lần cuối
-            setLastNotifiedData((prev) => {
-              const updatedData = {
-                temperature: [...prev.temperature],
-                spo2: [...prev.spo2],
-              };
-              updatedData.temperature[index] = temp;
-              updatedData.spo2[index] = sp;
-              return updatedData;
-            });
-          }
-        });
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [temperature, spo2, lastNotifiedData]);
-
   return (
-    <View>
-      <Text>alooo</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      {notification ? (
+        <Text>{`Notification received: ${notification.title}`}</Text>
+      ) : (
+        <Text>No notifications received yet</Text>
+      )}
     </View>
   );
 };
 
-export default Test;
+export default App;

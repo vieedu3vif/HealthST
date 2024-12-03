@@ -42,7 +42,7 @@ const getPatientStatus = (deviceData, key) => {
     }
     if(key =="temp") {
 
-        if(deviceData > 35) {
+        if(deviceData > 37) {
             return "Bất thường";
         }
         return "Bình thường";
@@ -176,6 +176,7 @@ const styles = StyleSheet.create({
         backgroundColor:'#95F8A7',
         borderRadius:5,
         justifyContent:'center',
-        alignItems:'center'
+        alignItems:'center',
+        marginLeft:-40,
     }
 })
