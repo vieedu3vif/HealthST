@@ -51,7 +51,7 @@ const Signup = () => {
                     <TouchableOpacity style={styles.loginButton} onPress={handleSignup}>
                         <Text style={{ fontSize: 16, color: "white" }}>Đăng ký</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                    <TouchableOpacity onPress={() => navigation.replace("Login")}>
                         <Text style={{ fontSize: 16, color: "blue", marginTop: 10 }}>Quay lại trang đăng nhập</Text>
                     </TouchableOpacity>
                 </View>
