@@ -42,7 +42,7 @@ const getPatientStatus = (deviceData, key) => {
     }
     if(key =="temp") {
 
-        if(deviceData > 37) {
+        if(deviceData > 37.2) {
             return "Bất thường";
         }
         return "Bình thường";
