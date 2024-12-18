@@ -10,7 +10,7 @@ const hei = Dimensions.get("window").height;
 const wid = Dimensions.get("window").width;
 
 const key = "heart_rate";
-const codeMax = "MAX";
+const codeMax = "MAX"; 
 const codeMin = "MIN";
 const codeAVG = "AVG";
 const HearRate = ({ route }) => {
