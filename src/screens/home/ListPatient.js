@@ -29,8 +29,8 @@ const ListPatient = () => {
   useEffect(() => {
     const fetchPatientsData = async () => {
       const deviceIds = [
-        "c7826090-9c28-11ef-b5a8-ed1aed9a651f",
-        "f009edb0-9cde-11ef-b5a8-ed1aed9a651f",
+        "cc518ae0-cb9f-11f0-aedf-65a2559b1d36",
+        "4c1cbb90-cba1-11f0-aedf-65a2559b1d36",
       ];
       const fetchedData = await Promise.all(
         deviceIds.map((deviceId) => fetchLatestTelemetryDataDevice(deviceId))
