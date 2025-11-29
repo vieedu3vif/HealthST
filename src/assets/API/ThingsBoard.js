@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 
-const jwtToken = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkdWNtaW5ocGhvY29AZ21haWwuY29tIiwidXNlcklkIjoiMDgyOTQxNzAtOWMyMS0xMWVmLWI1YTgtZWQxYWVkOWE2NTFmIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiIxMTllZmE2OS1hYmJiLTRmYzMtODYyYi00ZjExMGRkMzIwZTEiLCJleHAiOjE3MzI2ODUxMzksImlzcyI6InRoaW5nc2JvYXJkLmlvIiwiaWF0IjoxNzMwODg1MTM5LCJmaXJzdE5hbWUiOiJuZ3V5ZW4iLCJsYXN0TmFtZSI6ImR1YyBtaW5oIiwiZW5hYmxlZCI6dHJ1ZSwicHJpdmFjeVBvbGljeUFjY2VwdGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiMDZhYzY1NzAtOWMyMS0xMWVmLWI1YTgtZWQxYWVkOWE2NTFmIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.eE7i2EN-fXGgRgytAru8yWiFTXWfMlRAyhR2KdRUnl2W2-WmOhswSDha9J-NX66Zxi5Gv0CmbZ5xMkG1JC3IIg";
+const jwtToken = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtaW5obGFtdnU2MkBnbWFpbC5jb20iLCJ1c2VySWQiOiJlNWU5MTVjMC1jYjljLTExZjAtYWVkZi02NWEyNTU5YjFkMzYiLCJzY29wZXMiOlsiVEVOQU5UX0FETUlOIl0sInNlc3Npb25JZCI6IjY3NWY4MzllLWY3OTgtNDNkZi1iODI5LTg2MmZiODI3ODlhMyIsImV4cCI6MTc2NjA1MzUyNywiaXNzIjoidGhpbmdzYm9hcmQuaW8iLCJpYXQiOjE3NjQyNTM1MjcsImZpcnN0TmFtZSI6Im1pbmggbGFtIiwibGFzdE5hbWUiOiJ2dSIsImVuYWJsZWQiOnRydWUsInByaXZhY3lQb2xpY3lBY2NlcHRlZCI6dHJ1ZSwiaXNQdWJsaWMiOmZhbHNlLCJ0ZW5hbnRJZCI6ImU1Y2JhMmIwLWNiOWMtMTFmMC1hZWRmLTY1YTI1NTliMWQzNiIsImN1c3RvbWVySWQiOiIxMzgxNDAwMC0xZGQyLTExYjItODA4MC04MDgwODA4MDgwODAifQ.ktgQC287NQX-9vWhM3oLUXT0e7IDOCQdVK1JKP8QhCSPhskTuktUGX80iybhw4k17aMl_Hr6CWl_Zcu0ahWQIA";
 
 const currentTime = new Date();
 const oneHourAgo = new Date(currentTime.getTime() - 10 * 60 * 1000);
@@ -14,8 +14,8 @@ const ThingsBoard = ({ onDataFetched }) => {
   const [telemetryData, setTelemetryData] = useState({});
   const [historyData, setHistoryData] = useState({});
   const deviceIds = [
-    "c7826090-9c28-11ef-b5a8-ed1aed9a651f",
-    "f009edb0-9cde-11ef-b5a8-ed1aed9a651f"  
+    "cc518ae0-cb9f-11f0-aedf-65a2559b1d36",
+    "4c1cbb90-cba1-11f0-aedf-65a2559b1d36"  
   ];
 
   
