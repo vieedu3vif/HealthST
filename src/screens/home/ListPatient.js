@@ -82,7 +82,7 @@ const ListPatient = () => {
               style={styles.avatar}
             />
             <View>
-              <Text style={{ marginLeft: 20 }}>Thứ 6, 29 th9, 2024</Text>
+              <Text style={{ marginLeft: 20 }}>Chúc một ngày tốt lành</Text>
               <Text style={styles.welcomeText}>Xin chào, Bác sĩ!</Text>
             </View>
           </View>
